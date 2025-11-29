@@ -6,46 +6,92 @@ ini_set('display_errors', 1);
 // Iniciar sesión
 session_start();
 
-// Verificar y cargar configuración
-$constantsPath = __DIR__ . '/../config/constants.php';
+// Cargar configuración
+require_once __DIR__ . '/../config/constants.php';
+require_once __DIR__ . '/../includes/middleware.php';
 
-if (!file_exists($constantsPath)) {
-    die("<h1>Error de Configuración</h1>
-         <p>No se encuentra el archivo: <strong>config/constants.php</strong></p>
-         <p>Ruta esperada: <code>{$constantsPath}</code></p>
-         <p>Por favor, crea el archivo con el contenido proporcionado.</p>");
-}
-
-require_once $constantsPath;
+// Inicializar middleware
+$middleware = new Middleware();
 
 // Obtener página y acción
-$page = $_GET['page'] ?? 'home';
+$page = $_GET['page'] ?? 'login';
 $action = $_GET['action'] ?? 'index';
+
+// Páginas públicas (no requieren autenticación)
+$publicPages = ['login', 'registro'];
+
+// Si no está en página pública y no está autenticado, redirigir a login
+if (!in_array($page, $publicPages) && !isset($_SESSION['logged_in'])) {
+    header('Location: index.php?page=login');
+    exit;
+}
 
 // Routing del sistema
 try {
     switch ($page) {
-        case 'home':
-            $homePath = __DIR__ . '/../views/home.php';
-            if (file_exists($homePath)) {
-                require_once $homePath;
+        // ==================== AUTENTICACIÓN ====================
+        case 'login':
+            require_once __DIR__ . '/../controllers/AuthController.php';
+            $controller = new AuthController();
+            
+            if ($action === 'process') {
+                $controller->processLogin();
             } else {
-                throw new Exception("No se encuentra el archivo: views/home.php");
+                $controller->showLogin();
             }
             break;
             
+        case 'logout':
+            require_once __DIR__ . '/../controllers/AuthController.php';
+            $controller = new AuthController();
+            $controller->logout();
+            break;
+            
+        case 'dashboard':
+            require_once __DIR__ . '/../controllers/AuthController.php';
+            $controller = new AuthController();
+            $controller->dashboard();
+            break;
+        
+        // ==================== GESTIÓN DE USUARIOS ====================
+        case 'usuarios':
+            require_once __DIR__ . '/../controllers/UsuarioController.php';
+            $controller = new UsuarioController();
+            
+            switch ($action) {
+                case 'crear':
+                    $controller->crear();
+                    break;
+                case 'editar':
+                    $controller->editar();
+                    break;
+                case 'cambiar_password':
+                    $controller->cambiarPassword();
+                    break;
+                case 'eliminar':
+                    $controller->eliminar();
+                    break;
+                default:
+                    $controller->index();
+            }
+            break;
+        
+        // ==================== VISTAS ====================
         case 'vistas':
             require_once __DIR__ . '/../controllers/VistaController.php';
             $controller = new VistaController();
             $controller->index();
             break;
             
+        // ==================== CURSOS ====================
         case 'cursos':
             require_once __DIR__ . '/../controllers/CursoController.php';
             $controller = new CursoController();
             
             switch ($action) {
                 case 'crear':
+                    // Solo admin y profesores pueden crear cursos
+                    $middleware->requireRole(['Administrador', 'Profesor']);
                     $controller->crear();
                     break;
                 case 'buscar':
@@ -59,12 +105,23 @@ try {
             }
             break;
             
+        // ==================== INSCRIPCIONES ====================
         case 'inscripciones':
             require_once __DIR__ . '/../controllers/InscripcionController.php';
             $controller = new InscripcionController();
             
             switch ($action) {
+                case 'inscribirse':
+                    // Estudiantes pueden inscribirse
+                    $controller->inscribirse();
+                    break;
+                case 'mis-inscripciones':
+                    // Ver solo mis inscripciones
+                    $controller->misInscripciones();
+                    break;
                 case 'actualizar':
+                    // Solo admin y profesor pueden actualizar
+                    $middleware->requireRole(['Administrador', 'Profesor']);
                     $controller->actualizar();
                     break;
                 case 'buscar':
@@ -78,12 +135,19 @@ try {
             }
             break;
             
+        // ==================== PAGOS ====================
         case 'pagos':
             require_once __DIR__ . '/../controllers/PagoController.php';
             $controller = new PagoController();
             
             switch ($action) {
+                case 'mis-pagos':
+                    // Ver solo mis pagos
+                    $controller->misPagos();
+                    break;
                 case 'eliminar':
+                    // Solo admin puede eliminar pagos
+                    $middleware->requireRole(['Administrador']);
                     $controller->eliminar();
                     break;
                 case 'buscar':
@@ -97,12 +161,15 @@ try {
             }
             break;
             
+        // ==================== ESTUDIANTES ====================
         case 'estudiantes':
             require_once __DIR__ . '/../controllers/EstudianteController.php';
             $controller = new EstudianteController();
             
             switch ($action) {
                 case 'crear':
+                    // Solo admin puede crear estudiantes
+                    $middleware->requireRole(['Administrador']);
                     $controller->crear();
                     break;
                 default:
@@ -110,11 +177,16 @@ try {
             }
             break;
             
+        // ==================== NOTAS ====================
         case 'notas':
             require_once __DIR__ . '/../controllers/NotaController.php';
             $controller = new NotaController();
             
             switch ($action) {
+                case 'mis-notas':
+                    // Ver solo mis notas
+                    $controller->misNotas();
+                    break;
                 case 'buscar':
                     $controller->buscar();
                     break;
@@ -123,14 +195,18 @@ try {
             }
             break;
             
+        // ==================== FUNCIONES ====================
         case 'funciones':
             require_once __DIR__ . '/../controllers/FuncionController.php';
             $controller = new FuncionController();
             $controller->index();
             break;
             
+        // ==================== PÁGINA POR DEFECTO ====================
         default:
-            require_once __DIR__ . '/../views/home.php';
+            require_once __DIR__ . '/../controllers/AuthController.php';
+            $controller = new AuthController();
+            $controller->dashboard();
     }
     
 } catch (Exception $e) {

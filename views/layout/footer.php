@@ -1,4 +1,4 @@
-</div>
+ </div>
 </main>
 
 <footer class="footer">
@@ -9,6 +9,6 @@
 </footer>
 
 </div>
-<script src="public/js/main.js"></script>
+<script src="<?php echo BASE_URL; ?>js/main.js"></script>
 </body>
 </html>

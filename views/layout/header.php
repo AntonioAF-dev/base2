@@ -1,3 +1,7 @@
+<!-- =======================================================
+     ARCHIVO: views/layout/header.php
+     Encabezado compartido
+     ======================================================= -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
