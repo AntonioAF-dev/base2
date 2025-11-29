@@ -33,31 +33,31 @@ try {
         case 'login':
             require_once __DIR__ . '/../controllers/AuthController.php';
             $controller = new AuthController();
-            
+
             if ($action === 'process') {
                 $controller->processLogin();
             } else {
                 $controller->showLogin();
             }
             break;
-            
+
         case 'logout':
             require_once __DIR__ . '/../controllers/AuthController.php';
             $controller = new AuthController();
             $controller->logout();
             break;
-            
+
         case 'dashboard':
             require_once __DIR__ . '/../controllers/AuthController.php';
             $controller = new AuthController();
             $controller->dashboard();
             break;
-        
+
         // ==================== GESTIÓN DE USUARIOS ====================
         case 'usuarios':
             require_once __DIR__ . '/../controllers/UsuarioController.php';
             $controller = new UsuarioController();
-            
+
             switch ($action) {
                 case 'crear':
                     $controller->crear();
@@ -75,19 +75,19 @@ try {
                     $controller->index();
             }
             break;
-        
+
         // ==================== VISTAS ====================
         case 'vistas':
             require_once __DIR__ . '/../controllers/VistaController.php';
             $controller = new VistaController();
             $controller->index();
             break;
-            
+
         // ==================== CURSOS ====================
         case 'cursos':
             require_once __DIR__ . '/../controllers/CursoController.php';
             $controller = new CursoController();
-            
+
             switch ($action) {
                 case 'crear':
                     // Solo admin y profesores pueden crear cursos
@@ -104,12 +104,12 @@ try {
                     $controller->index();
             }
             break;
-            
+
         // ==================== INSCRIPCIONES ====================
         case 'inscripciones':
             require_once __DIR__ . '/../controllers/InscripcionController.php';
             $controller = new InscripcionController();
-            
+
             switch ($action) {
                 case 'inscribirse':
                     // Estudiantes pueden inscribirse
@@ -134,17 +134,13 @@ try {
                     $controller->index();
             }
             break;
-            
+
         // ==================== PAGOS ====================
         case 'pagos':
             require_once __DIR__ . '/../controllers/PagoController.php';
             $controller = new PagoController();
-            
+
             switch ($action) {
-                case 'mis-pagos':
-                    // Ver solo mis pagos
-                    $controller->misPagos();
-                    break;
                 case 'eliminar':
                     // Solo admin puede eliminar pagos
                     $middleware->requireRole(['Administrador']);
@@ -160,12 +156,12 @@ try {
                     $controller->index();
             }
             break;
-            
+
         // ==================== ESTUDIANTES ====================
         case 'estudiantes':
             require_once __DIR__ . '/../controllers/EstudianteController.php';
             $controller = new EstudianteController();
-            
+
             switch ($action) {
                 case 'crear':
                     // Solo admin puede crear estudiantes
@@ -176,17 +172,13 @@ try {
                     $controller->index();
             }
             break;
-            
+
         // ==================== NOTAS ====================
         case 'notas':
             require_once __DIR__ . '/../controllers/NotaController.php';
             $controller = new NotaController();
-            
+
             switch ($action) {
-                case 'mis-notas':
-                    // Ver solo mis notas
-                    $controller->misNotas();
-                    break;
                 case 'buscar':
                     $controller->buscar();
                     break;
@@ -194,21 +186,20 @@ try {
                     $controller->index();
             }
             break;
-            
+
         // ==================== FUNCIONES ====================
         case 'funciones':
             require_once __DIR__ . '/../controllers/FuncionController.php';
             $controller = new FuncionController();
             $controller->index();
             break;
-            
+
         // ==================== PÁGINA POR DEFECTO ====================
         default:
             require_once __DIR__ . '/../controllers/AuthController.php';
             $controller = new AuthController();
             $controller->dashboard();
     }
-    
 } catch (Exception $e) {
     echo "<div style='background:#f8d7da; color:#721c24; padding:20px; margin:20px; border:1px solid #f5c6cb; border-radius:5px;'>";
     echo "<h2>❌ Error del Sistema</h2>";
